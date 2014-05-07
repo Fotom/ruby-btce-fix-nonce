@@ -83,11 +83,19 @@ module Btce
                       :signed => signed })
     end
 
+    def self.nonce_global
+      nonce_new = File.readlines('nonce_global')[0].to_i + 1
+      File.open('nonce_global', 'w') {|file| file.write(nonce_new.to_s)}
+      return @last_nonce = nonce_new
+    end
+
     def nonce
-      while result = Time.now.to_i and @last_nonce and @last_nonce >= result
-        sleep 1
-      end
-      return @last_nonce = result
+      return TradeAPI.nonce_global
+      # old - original code with bug
+      # while result = Time.now.to_i and @last_nonce and @last_nonce >= result
+      #   sleep 1
+      # end
+      # return @last_nonce = result
     end
     private :nonce
 
