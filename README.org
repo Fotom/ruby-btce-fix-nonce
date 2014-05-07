@@ -1,3 +1,35 @@
 * =Btce= Module fix
 
 See original documentation on page: https://github.com/cgore/ruby-btce
+
+**** Problem:
+
+The original gem btce has one problem with nonce params, which sended into btc-e.com.
+The problem is that you can not send more than one request per second (since both will have the same query parameter nonce and btc-e api return error).
+
+**** Resolve:
+
+This fork change nonce method and save nonce params into separate file, with increment current value.
+Required file name: nonce_global (content: int value (example: 1386958919))
+
+**** Changes:
+
+All changes made in file lib/btce/api/trade_api.rb
+
+#+BEGIN_SRC ruby
+    def self.nonce_global
+      nonce_new = File.readlines('nonce_global')[0].to_i + 1
+      File.open('nonce_global', 'w') {|file| file.write(nonce_new.to_s)}
+      return @last_nonce = nonce_new
+    end
+
+    def nonce
+      return TradeAPI.nonce_global
+      # old - original code with bug
+      # while result = Time.now.to_i and @last_nonce and @last_nonce >= result
+      #   sleep 1
+      # end
+      # return @last_nonce = result
+    end
+    private :nonce
+#+END_SRC
